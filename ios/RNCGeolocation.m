@@ -220,31 +220,16 @@ RCT_EXPORT_METHOD(requestAuthorization)
   BOOL wantsAlways = NO;
   BOOL wantsWhenInUse = NO;
   if (_locationConfiguration.authorizationLevel == RNCGeolocationAuthorizationLevelDefault) {
-    if ([[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationAlwaysUsageDescription"] &&
-        [_locationManager respondsToSelector:@selector(requestAlwaysAuthorization)]) {
-      wantsAlways = YES;
-    } else if ([[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationWhenInUseUsageDescription"] &&
+    if ([[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationWhenInUseUsageDescription"] &&
                [_locationManager respondsToSelector:@selector(requestWhenInUseAuthorization)]) {
       wantsWhenInUse = YES;
     }
-  } else if (_locationConfiguration.authorizationLevel == RNCGeolocationAuthorizationLevelAlways) {
-    wantsAlways = YES;
-  } else if (_locationConfiguration.authorizationLevel == RNCGeolocationAuthorizationLevelWhenInUse) {
+  }else if (_locationConfiguration.authorizationLevel == RNCGeolocationAuthorizationLevelWhenInUse) {
     wantsWhenInUse = YES;
   }
 
   // Request location access permission
-  if (wantsAlways) {
-    [_locationManager requestAlwaysAuthorization];
-
-    // On iOS 9+ we also need to enable background updates
-    NSArray *backgroundModes  = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"UIBackgroundModes"];
-    if (backgroundModes && [backgroundModes containsObject:@"location"]) {
-      if ([_locationManager respondsToSelector:@selector(setAllowsBackgroundLocationUpdates:)]) {
-        [_locationManager setAllowsBackgroundLocationUpdates:YES];
-      }
-    }
-  } else if (wantsWhenInUse) {
+  if (wantsWhenInUse) {
     [_locationManager requestWhenInUseAuthorization];
   }
 }
@@ -417,10 +402,8 @@ RCT_EXPORT_METHOD(getCurrentPosition:(RNCGeolocationOptions)options
 static void checkLocationConfig()
 {
 #if RCT_DEV
-  if (!([[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationWhenInUseUsageDescription"] ||
-        [[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationAlwaysUsageDescription"] ||
-        [[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationAlwaysAndWhenInUseUsageDescription"])) {
-    RCTLogError(@"Either NSLocationWhenInUseUsageDescription or NSLocationAlwaysUsageDescription or NSLocationAlwaysAndWhenInUseUsageDescription key must be present in Info.plist to use geolocation.");
+  if (!([[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationWhenInUseUsageDescription"])) {
+    RCTLogError(@"Either NSLocationWhenInUseUsageDescription key must be present in Info.plist to use geolocation.");
   }
 #endif
 }
